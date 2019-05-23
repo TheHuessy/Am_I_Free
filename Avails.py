@@ -3,7 +3,9 @@ from googleapiclient.discovery import build
 import pandas as pd
 import datetime
 import re
+from pprint import pprint
 from calendar import monthcalendar as mc
+
 
 
 def get_the_date(week_of_month, day_of_week, year, month_num):
@@ -46,7 +48,7 @@ def get_the_date(week_of_month, day_of_week, year, month_num):
 
 ## If monthly_week: look for dates that fall on the 'days' values but also that appear in X week
 
-def free_dates(days=[], months_forward=4, booker_show=None, monthly_week=None):
+def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=None):
 
     
     known_shows = {"Laugh": ["Thursday", "Friday", "Saturday"],
@@ -72,8 +74,9 @@ def free_dates(days=[], months_forward=4, booker_show=None, monthly_week=None):
             return(None)
         else:
             days = known_shows[booker_show]
+            
     else:
-        days = days
+        days = days_var
     
     ####################################
     #########GETTTING GOOGLE DATA#######
@@ -245,11 +248,10 @@ def free_dates(days=[], months_forward=4, booker_show=None, monthly_week=None):
         ddw = datetime.datetime.weekday(l)
         ddn = day_dict[ddw]
         if ddn in days:
-            fin += [l]
+            fin += [re.sub(pattern="[0-9]{4}-", repl="", string=l.isoformat())]
             
+    #free_days = [x.isoformat() for x in fin]
     
     
-    return([x.isoformat() for x in t_range])
     
-    
-#free_dates(days=[], months_forward=4, booker_show="Laugh", monthly_week=None)
+    return([x for x in fin])
