@@ -11,7 +11,7 @@ from calendar import monthcalendar as mc
 def get_the_date(week_of_month, day_of_week, year, month_num):
     days_dict = {"Monday": 0,
                  "Tuesday":1,
-                 "Wedsday": 2,
+                 "Wednesday": 2,
                  "Thursday": 3,
                  "Friday": 4,
                  "Saturday": 5,
@@ -53,7 +53,7 @@ def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=Non
     
     known_shows = {"Laugh": ["Thursday", "Friday", "Saturday"],
                   "Nicks": ["Friday", "Saturday"],
-                  "Hideout": ["Friday", "Saturday"],
+                  "Hideout": ["Thursday","Friday", "Saturday"],
                   "McGreevys": ["Monday", "Tuesday"],
                   "Capo": ["Monday"],
                   "Comedy Studio": ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -62,7 +62,7 @@ def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=Non
     
     day_dict = {0: "Monday",
                 1: "Tuesday",
-                2: "Wedsday",
+                2: "Wednesday",
                 3: "Thursday",
                 4: "Friday",
                 5: "Saturday",
@@ -98,10 +98,12 @@ def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=Non
     
     if t_now.month+months_forward > 12:
         end_year = t_now.year + 1
-    else:
+        end_month = (t_now.month+months_forward)-12
+    elif t_now.month+months_forward <= 12:
         end_year = t_now.year
+        end_month = t_now.month+months_forward
         
-    t_end = datetime.datetime(end_year, t_now.month+months_forward, 1, *t_now.timetuple()[3:-2])
+    t_end = datetime.datetime(end_year, end_month, 1, *t_now.timetuple()[3:-2])
 
     d = service.events().list(calendarId='jameshuessy@gmail.com', 
                               timeMin=t_now.isoformat()+'Z',
@@ -157,6 +159,7 @@ def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=Non
         
         else:
             tme = re.sub(pattern='-04:00', repl="", string=tme)
+            tme = re.sub(pattern='-05:00', repl="", string=tme)
         
             tme = re.sub(pattern='T', repl=" ", string=tme)
         
@@ -198,12 +201,14 @@ def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=Non
     if monthly_week:
         t_range = []
         if t_end.month < t_now.month:
-            for mnths in range(t_now.month, 12):                
+            for mnths in range(t_now.month, 12):
+                # Start with the first month through december
                 t_r = get_the_date(week_of_month=monthly_week,
                                    day_of_week=days,
                                    year=t_now.year, 
                                    month_num=mnths)
                 t_range += [t_r]
+                # Go to January through the end month of the following year
             for mnths in range(1, t_end.month):                
                 t_r = get_the_date(week_of_month=monthly_week,
                                    day_of_week=days,
@@ -248,10 +253,6 @@ def free_dates(days_var=[], months_forward=4, booker_show=None, monthly_week=Non
         ddw = datetime.datetime.weekday(l)
         ddn = day_dict[ddw]
         if ddn in days:
-            fin += [re.sub(pattern="[0-9]{4}-", repl="", string=l.isoformat())]
-            
-    #free_days = [x.isoformat() for x in fin]
-    
-    
+            fin += [re.sub(pattern="[0-9]{4}-", repl="", string=l.isoformat())]    
     
     return([x for x in fin])
